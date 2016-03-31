@@ -13,7 +13,7 @@ class MakeViewCommand extends Command
      * @var string
      */
     protected $signature = 'make:view
-                           {name : The name of the view to create}
+                           {name : The name of the view to create. Use resource for resourceful views}
                            {--extends= : What \'master\' view should be extended?}
                            {--sections= : A comma-separated list of sections to create.}
                            {--directory=resources/views/ : The directory where your views are stored.}
@@ -37,10 +37,29 @@ class MakeViewCommand extends Command
             base_path($this->option('directory'))
         );
 
-        $view = $view->create(
-            $this->argument('name'),
-            $this->option('extension')
-        );
+
+        // check if view is made with resource keyword
+        // example: make:view products/resource or make:view products.resource
+        if ( strpos( $this->argument('name'), 'resource' ) ) {
+            // resource items to create
+            $types = ['edit', 'index', 'create', 'show'];
+            foreach($types as $type) {
+                // change resource into type.
+                $filename = str_replace('resource', $type, $this->argument('name'));
+                $view = $view->create(
+                    $filename,
+                    $this->option('extension')
+                );
+            }
+
+        } else {
+            $view = $view->create(
+                $this->argument('name'),
+                $this->option('extension')
+            );
+        }
+
+
 
         if ( ! is_null( $this->option('extends') )) {
             $view = $view->extend($this->option('extends'));
